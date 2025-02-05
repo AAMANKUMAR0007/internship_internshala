@@ -6,7 +6,7 @@ export async function DELETE(
   req: NextRequest
 ): Promise<NextResponse> {
   try {
-    // Get task ID from the request body
+    // Get task ID from the request body (JSON payload)
     const { id } = await req.json();
 
     // Check if the task ID is provided
