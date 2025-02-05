@@ -5,12 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 // DELETE: Delete a task by its id
 export async function DELETE(
   req: NextRequest,
-  context: { params: Record<string, string> }
-): Promise<Response> {
+  { params }: { params: Record<string, string> } // Updated type definition
+): Promise<NextResponse> {
   try {
     // Retrieve the authenticated user's information
     const { userId } = auth();
-    const { id } = context.params;
+    const { id } = params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
