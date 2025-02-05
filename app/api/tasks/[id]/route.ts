@@ -2,31 +2,32 @@ import prisma from "@/app/utils/connect";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-// DELETE: Delete a task by its id
+// DELETE: Remove a task by ID
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params?: { id?: string } } // params are optional
 ): Promise<NextResponse> {
   try {
-    // Retrieve the authenticated user's information
+    // Authenticate the user
     const { userId } = auth();
-    const { id } = context.params;
-
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Delete the task from the database using Prisma
-    const task = await prisma.task.delete({
-      where: { id },
+    // Validate and extract task ID
+    const taskId = context.params?.id;
+    if (!taskId) {
+      return new NextResponse("Bad Request: Missing task ID", { status: 400 });
+    }
+
+    // Delete the task using Prisma
+    const deletedTask = await prisma.task.delete({
+      where: { id: taskId },
     });
 
-    return NextResponse.json(task);
+    return NextResponse.json(deletedTask);
   } catch (error) {
-    console.error("ERROR DELETING TASK:", error);
-    return NextResponse.json(
-      { error: "Error deleting task", status: 500 },
-      { status: 500 }
-    );
+    console.error("Error deleting task:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
