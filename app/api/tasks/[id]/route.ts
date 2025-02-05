@@ -1,21 +1,22 @@
 import prisma from "@/app/utils/connect";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+// DELETE: Delete a task by its id
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Record<string, string> }
 ): Promise<Response> {
   try {
-    // Use Clerk's auth function to get the current user
+    // Retrieve the authenticated user's information
     const { userId } = auth();
-    const { id } = params;
+    const { id } = context.params;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Delete the task from your database via Prisma
+    // Delete the task from the database using Prisma
     const task = await prisma.task.delete({
       where: { id },
     });
