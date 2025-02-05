@@ -2,9 +2,10 @@ import prisma from "@/app/utils/connect";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// POST: Create a task
 export async function POST(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = auth();  // Clerk authentication
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
@@ -44,9 +45,10 @@ export async function POST(req: Request) {
   }
 }
 
+// GET: Retrieve all tasks for a user
 export async function GET(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = auth();  // Clerk authentication
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
@@ -61,13 +63,14 @@ export async function GET(req: Request) {
     return NextResponse.json(tasks);
   } catch (error) {
     console.log("ERROR GETTING TASKS: ", error);
-    return NextResponse.json({ error: "Error updating task", status: 500 });
+    return NextResponse.json({ error: "Error getting tasks", status: 500 });
   }
 }
 
+// PUT: Update a task's completion status
 export async function PUT(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = auth();  // Clerk authentication
     const { isCompleted, id } = await req.json();
 
     if (!userId) {
@@ -86,6 +89,34 @@ export async function PUT(req: Request) {
     return NextResponse.json(task);
   } catch (error) {
     console.log("ERROR UPDATING TASK: ", error);
+    return NextResponse.json({ error: "Error updating task", status: 500 });
+  }
+}
+
+// DELETE: Delete a task
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const { userId } = auth();  // Clerk authentication
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized", status: 401 });
+    }
+
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json({ error: "Task ID is required", status: 400 });
+    }
+
+    const task = await prisma.task.delete({
+      where: {
+        id,
+      },
+    });
+
+    return NextResponse.json(task);
+  } catch (error) {
+    console.log("ERROR DELETING TASK: ", error);
     return NextResponse.json({ error: "Error deleting task", status: 500 });
   }
 }
