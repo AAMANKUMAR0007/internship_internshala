@@ -1,11 +1,11 @@
 import prisma from "@/app/utils/connect";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST: Create a task
 export async function POST(req: Request) {
   try {
-    const { userId } = auth(); // Clerk authentication
+    const { userId } = getAuth(req); // Clerk authentication
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 // GET: Retrieve all tasks for a user
 export async function GET(req: Request) {
   try {
-    const { userId } = auth(); // Clerk authentication
+    const { userId } = getAuth(req); // Clerk authentication
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
 // PUT: Update a task's completion status
 export async function PUT(req: Request) {
   try {
-    const { userId } = auth(); // Clerk authentication
+    const { userId } = getAuth(req); // Clerk authentication
     const { isCompleted, id } = await req.json();
 
     if (!userId) {
@@ -99,7 +99,7 @@ export async function DELETE(
   context: any // using "any" for context avoids type conflicts with route parameters
 ): Promise<NextResponse> {
   try {
-    const { userId } = auth(); // Clerk authentication
+    const { userId } = getAuth(req); // Clerk authentication
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
