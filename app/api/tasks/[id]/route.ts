@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 // DELETE: Remove a task by ID
 export async function DELETE(
   req: NextRequest,
-  context: { params?: { id?: string } } // params are optional
+  { params }: { params: { id: string } } // Ensure params are correctly typed
 ): Promise<NextResponse> {
   try {
     // Authenticate the user
@@ -14,15 +14,14 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Validate and extract task ID
-    const taskId = context.params?.id;
-    if (!taskId) {
+    // Validate task ID
+    if (!params.id) {
       return new NextResponse("Bad Request: Missing task ID", { status: 400 });
     }
 
     // Delete the task using Prisma
     const deletedTask = await prisma.task.delete({
-      where: { id: taskId },
+      where: { id: params.id },
     });
 
     return NextResponse.json(deletedTask);
