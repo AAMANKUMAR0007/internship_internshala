@@ -1,13 +1,29 @@
 import prisma from "@/app/utils/connect";
-import { getAuth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+
+// Helper function to verify the JWT token (replace with your actual verification logic)
+const verifyToken = (token: string) => {
+  // Placeholder for your token verification logic
+  // This could be Clerk, JWT, or any other authentication mechanism
+  if (token === "valid-token") {
+    return { userId: "12345" }; // mock return of userId, replace with real verification
+  }
+  return null;
+};
 
 // POST: Create a task
 export async function POST(req: Request) {
   try {
-    const { userId } = getAuth(req); // Clerk authentication
+    // Extract the token from the Authorization header
+    const token = req.headers.get("Authorization")?.split("Bearer ")[1];
 
-    if (!userId) {
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized", status: 401 });
+    }
+
+    const authData = verifyToken(token); // Replace with actual verification function
+
+    if (!authData || !authData.userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
     }
 
@@ -34,7 +50,7 @@ export async function POST(req: Request) {
         date,
         isCompleted: completed,
         isImportant: important,
-        userId,
+        userId: authData.userId,
       },
     });
 
@@ -48,15 +64,22 @@ export async function POST(req: Request) {
 // GET: Retrieve all tasks for a user
 export async function GET(req: Request) {
   try {
-    const { userId } = getAuth(req); // Clerk authentication
+    // Extract the token from the Authorization header
+    const token = req.headers.get("Authorization")?.split("Bearer ")[1];
 
-    if (!userId) {
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized", status: 401 });
+    }
+
+    const authData = verifyToken(token); // Replace with actual verification function
+
+    if (!authData || !authData.userId) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
     }
 
     const tasks = await prisma.task.findMany({
       where: {
-        userId,
+        userId: authData.userId,
       },
     });
 
@@ -70,12 +93,20 @@ export async function GET(req: Request) {
 // PUT: Update a task's completion status
 export async function PUT(req: Request) {
   try {
-    const { userId } = getAuth(req); // Clerk authentication
-    const { isCompleted, id } = await req.json();
+    // Extract the token from the Authorization header
+    const token = req.headers.get("Authorization")?.split("Bearer ")[1];
 
-    if (!userId) {
+    if (!token) {
       return NextResponse.json({ error: "Unauthorized", status: 401 });
     }
+
+    const authData = verifyToken(token); // Replace with actual verification function
+
+    if (!authData || !authData.userId) {
+      return NextResponse.json({ error: "Unauthorized", status: 401 });
+    }
+
+    const { isCompleted, id } = await req.json();
 
     const task = await prisma.task.update({
       where: {
@@ -94,18 +125,21 @@ export async function PUT(req: Request) {
 }
 
 // DELETE: Delete a task
-export async function DELETE(
-  req: NextRequest,
-  context: any // using "any" for context avoids type conflicts with route parameters
-): Promise<NextResponse> {
+export async function DELETE(req: NextRequest, context: any): Promise<NextResponse> {
   try {
-    const { userId } = getAuth(req); // Clerk authentication
+    // Extract the token from the Authorization header
+    const token = req.headers.get("Authorization")?.split("Bearer ")[1];
 
-    if (!userId) {
+    if (!token) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Extract the task ID from the context passed by Next.js
+    const authData = verifyToken(token); // Replace with actual verification function
+
+    if (!authData || !authData.userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const { id } = context.params;
 
     if (!id) {
